@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <style name="Widget.JelajahRasa.Button.Primary" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/theme_primary</item>
+        <item name="android:textColor">@color/theme_on_primary</item>
+        <item name="cornerRadius">@dimen/radius_md</item>
+        <item name="android:minHeight">@dimen/button_height</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">sans</item>
+    </style>
+
+    <style name="Widget.JelajahRasa.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">@color/box_stroke_color</item>
+        <item name="cornerRadius">@dimen/radius_md</item>
+        <item name="android:minHeight">@dimen/button_height</item>
+        <item name="android:textColor">@color/theme_text</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.JelajahRasa.Card" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">@color/theme_card</item>
+        <item name="cardCornerRadius">@dimen/radius_lg</item>
+        <item name="cardElevation">2dp</item>
+        <item name="strokeColor">@color/box_stroke_color</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <style name="Widget.JelajahRasa.TextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/box_stroke_color</item>
+        <item name="boxCornerRadiusTopStart">@dimen/radius_md</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/radius_md</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/radius_md</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/radius_md</item>
+        <item name="hintTextColor">@color/theme_text_secondary</item>
+    </style>
+
+    <style name="TextAppearance.JelajahRasa.BottomNavText" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">10sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+</resources>

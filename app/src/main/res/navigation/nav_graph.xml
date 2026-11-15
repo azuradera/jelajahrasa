@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.bayu.jelajahrasa.ui.auth.LoginFragment"
+        android:label="Masuk">
+
+        <action
+            android:id="@+id/action_login_to_register"
+            app:destination="@id/registerFragment" />
+
+        <action
+            android:id="@+id/action_login_to_forgot_password"
+            app:destination="@id/forgotPasswordFragment" />
+
+        <action
+            android:id="@+id/action_login_to_home"
+            app:destination="@id/homeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/forgotPasswordFragment"
+        android:name="com.bayu.jelajahrasa.ui.auth.ForgotPasswordFragment"
+        android:label="Atur Ulang Kata Sandi">
+
+        <action
+            android:id="@+id/action_forgot_password_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.bayu.jelajahrasa.ui.auth.RegisterFragment"
+        android:label="Daftar">
+
+        <action
+            android:id="@+id/action_register_to_login"
+            app:destination="@id/loginFragment" />
+
+        <action
+            android:id="@+id/action_register_to_home"
+            app:destination="@id/homeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.bayu.jelajahrasa.ui.home.HomeFragment"
+        android:label="Beranda">
+
+        <action
+            android:id="@+id/action_home_to_explore"
+            app:destination="@id/exploreFragment" />
+
+        <action
+            android:id="@+id/action_home_to_detail"
+            app:destination="@id/movieDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/exploreFragment"
+        android:name="com.bayu.jelajahrasa.ui.explore.ExploreFragment"
+        android:label="Jelajahi">
+
+        <argument
+            android:name="mood"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+
+        <action
+            android:id="@+id/action_explore_to_detail"
+            app:destination="@id/movieDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/collectionFragment"
+        android:name="com.bayu.jelajahrasa.ui.collection.CollectionFragment"
+        android:label="Koleksi">
+
+        <action
+            android:id="@+id/action_collection_to_detail"
+            app:destination="@id/movieDetailFragment" />
+
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.bayu.jelajahrasa.ui.profile.ProfileFragment"
+        android:label="Profil" />
+
+    <fragment
+        android:id="@+id/movieDetailFragment"
+        android:name="com.bayu.jelajahrasa.ui.detail.MovieDetailFragment"
+        android:label="Detail Film">
+
+        <argument
+            android:name="movieId"
+            app:argType="integer" />
+    </fragment>
+
+</navigation>

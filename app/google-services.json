@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "472587681445",
+    "project_id": "jelajahrasa-eb34e",
+    "storage_bucket": "jelajahrasa-eb34e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:472587681445:android:23d690cc1f6aba81aa174c",
+        "android_client_info": {
+          "package_name": "com.bayu.jelajahrasa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXhxSNuy70LZtMLv9kld3Rwo2aF9sEnfI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

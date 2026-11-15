@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <style name="TextAppearance.JelajahRasa.Display" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:textColor">@color/theme_text</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.JelajahRasa.Headline" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textColor">@color/theme_text</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.JelajahRasa.Title" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">@color/theme_text</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.JelajahRasa.Body" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">@color/theme_text</item>
+        <item name="android:fontFamily">sans</item>
+    </style>
+
+    <style name="TextAppearance.JelajahRasa.Caption" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/theme_text_secondary</item>
+        <item name="android:fontFamily">sans</item>
+    </style>
+
+</resources>
