@@ -2,7 +2,9 @@ package com.bayu.jelajahrasa.ui.home
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -15,6 +17,7 @@ import com.bayu.jelajahrasa.R
 import com.bayu.jelajahrasa.databinding.FragmentHomeBinding
 import com.bayu.jelajahrasa.model.Mood
 import com.bayu.jelajahrasa.ui.movie.MovieAdapter
+import com.bayu.jelajahrasa.ui.movie.SharedRecommendationViewModel
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
@@ -27,6 +30,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         HomeViewModelFactory(app.movieRepository)
     }
 
+    private val sharedViewModel: SharedRecommendationViewModel by activityViewModels()
+
     private lateinit var popularAdapter: MovieAdapter
     private lateinit var currentYearAdapter: MovieAdapter
     private lateinit var topRatedAdapter: MovieAdapter
@@ -38,9 +43,68 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         setupMovieLists()
         setupMoodSelection()
+        setupRecommendationModeToggle()
         setupNavigation()
         setupScrollListener()
         observeMovies()
+    }
+
+    private fun setupRecommendationModeToggle() {
+        val currentMode = sharedViewModel.recommendationMode.value
+        updateToggleStyles(currentMode)
+
+        binding.btnFast.setOnClickListener {
+            sharedViewModel.setMode(SharedRecommendationViewModel.MODE_FAST)
+            updateToggleStyles(SharedRecommendationViewModel.MODE_FAST)
+        }
+
+        binding.btnAccurate.setOnClickListener {
+            sharedViewModel.setMode(SharedRecommendationViewModel.MODE_ACCURATE)
+            updateToggleStyles(SharedRecommendationViewModel.MODE_ACCURATE)
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                sharedViewModel.recommendationMode.collect { mode ->
+                    updateToggleStyles(mode)
+                }
+            }
+        }
+    }
+
+    private fun updateToggleStyles(mode: String?) {
+        val primaryColor = ContextCompat.getColor(requireContext(), R.color.theme_primary)
+        val surfaceColor = ContextCompat.getColor(requireContext(), R.color.theme_surface)
+        val textSecondaryColor = ContextCompat.getColor(requireContext(), R.color.theme_text_secondary)
+        val onPrimaryColor = ContextCompat.getColor(requireContext(), R.color.theme_on_primary)
+        val outlineColor = ContextCompat.getColor(requireContext(), R.color.theme_outline)
+
+        if (mode == SharedRecommendationViewModel.MODE_FAST) {
+            binding.btnFast.backgroundTintList = android.content.res.ColorStateList.valueOf(primaryColor)
+            binding.btnFast.setTextColor(onPrimaryColor)
+            binding.btnFast.strokeColor = android.content.res.ColorStateList.valueOf(primaryColor)
+
+            binding.btnAccurate.backgroundTintList = android.content.res.ColorStateList.valueOf(surfaceColor)
+            binding.btnAccurate.setTextColor(textSecondaryColor)
+            binding.btnAccurate.strokeColor = android.content.res.ColorStateList.valueOf(outlineColor)
+        } else if (mode == SharedRecommendationViewModel.MODE_ACCURATE) {
+            binding.btnAccurate.backgroundTintList = android.content.res.ColorStateList.valueOf(primaryColor)
+            binding.btnAccurate.setTextColor(onPrimaryColor)
+            binding.btnAccurate.strokeColor = android.content.res.ColorStateList.valueOf(primaryColor)
+
+            binding.btnFast.backgroundTintList = android.content.res.ColorStateList.valueOf(surfaceColor)
+            binding.btnFast.setTextColor(textSecondaryColor)
+            binding.btnFast.strokeColor = android.content.res.ColorStateList.valueOf(outlineColor)
+        } else {
+            // Neutral (Belum dipilih)
+            binding.btnFast.backgroundTintList = android.content.res.ColorStateList.valueOf(surfaceColor)
+            binding.btnFast.setTextColor(textSecondaryColor)
+            binding.btnFast.strokeColor = android.content.res.ColorStateList.valueOf(outlineColor)
+
+            binding.btnAccurate.backgroundTintList = android.content.res.ColorStateList.valueOf(surfaceColor)
+            binding.btnAccurate.setTextColor(textSecondaryColor)
+            binding.btnAccurate.strokeColor = android.content.res.ColorStateList.valueOf(outlineColor)
+        }
     }
 
     private fun setupMovieLists() {
@@ -95,8 +159,15 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun openMood(mood: Mood) {
+        val mode = sharedViewModel.recommendationMode.value
+        val effectiveMode = if (mode == SharedRecommendationViewModel.MODE_NONE) {
+            SharedRecommendationViewModel.MODE_ACCURATE
+        } else {
+            mode
+        }
         val bundle = Bundle().apply {
             putString("mood", mood.name)
+            putString("recommendationMode", effectiveMode)
         }
         findNavController().navigate(
             R.id.action_home_to_explore,
@@ -105,10 +176,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun setupNavigation() {
-        binding.profileButton.setOnClickListener {
-            findNavController().navigate(R.id.profileFragment)
-        }
-
         binding.seeAllMovies.setOnClickListener {
             findNavController().navigate(R.id.exploreFragment)
         }

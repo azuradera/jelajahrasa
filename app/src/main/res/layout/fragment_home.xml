@@ -13,7 +13,7 @@
         android:orientation="vertical"
         android:paddingBottom="90dp">
 
-        <!-- Header Profile & Title -->
+        <!-- Header Title -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -25,9 +25,8 @@
             android:paddingBottom="12dp">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical">
 
                 <TextView
@@ -47,28 +46,6 @@
                     android:textStyle="bold" />
 
             </LinearLayout>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/profile_button"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="@color/theme_card"
-                app:cardCornerRadius="23dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/theme_outline"
-                app:strokeWidth="1dp">
-
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:contentDescription="@string/profile"
-                    android:padding="11dp"
-                    android:src="@drawable/ic_profile"
-                    app:tint="@color/theme_primary" />
-
-            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
 
@@ -97,10 +74,45 @@
                 android:textColor="@color/theme_text_secondary"
                 android:textSize="13sp" />
 
+            <LinearLayout
+                android:id="@+id/recommendation_mode_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_fast"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:text="Cepat"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="@color/theme_outline" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_accurate"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:text="Akurat"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="@color/theme_outline" />
+
+            </LinearLayout>
+
             <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="12dp"
                 android:columnCount="2"
                 android:orientation="horizontal">
 

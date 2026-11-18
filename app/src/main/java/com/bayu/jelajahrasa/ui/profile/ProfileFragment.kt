@@ -3,7 +3,9 @@ package com.bayu.jelajahrasa.ui.profile
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navOptions
 import com.bayu.jelajahrasa.JelajahRasaApp
@@ -47,11 +49,14 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         }
 
         binding.themeToggleGroup.check(selectedButton)
+        updateThemeToggleStyles(selectedButton)
 
         binding.themeToggleGroup.addOnButtonCheckedListener {
                 _, checkedId, isChecked ->
 
             if (!isChecked) return@addOnButtonCheckedListener
+
+            updateThemeToggleStyles(checkedId)
 
             val theme = when (checkedId) {
                 R.id.theme_light -> ThemePreferences.LIGHT
@@ -64,6 +69,27 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     requireContext(),
                     theme
                 )
+            }
+        }
+    }
+
+    private fun updateThemeToggleStyles(checkedId: Int) {
+        val primaryColor = ContextCompat.getColor(requireContext(), R.color.theme_primary)
+        val surfaceColor = ContextCompat.getColor(requireContext(), R.color.theme_surface)
+        val textSecondaryColor = ContextCompat.getColor(requireContext(), R.color.theme_text_secondary)
+        val onPrimaryColor = ContextCompat.getColor(requireContext(), R.color.theme_on_primary)
+        val outlineColor = ContextCompat.getColor(requireContext(), R.color.theme_outline)
+
+        val buttons = listOf(binding.themeSystem, binding.themeLight, binding.themeDark)
+        for (btn in buttons) {
+            if (btn.id == checkedId) {
+                btn.backgroundTintList = android.content.res.ColorStateList.valueOf(primaryColor)
+                btn.setTextColor(onPrimaryColor)
+                btn.strokeColor = android.content.res.ColorStateList.valueOf(primaryColor)
+            } else {
+                btn.backgroundTintList = android.content.res.ColorStateList.valueOf(surfaceColor)
+                btn.setTextColor(textSecondaryColor)
+                btn.strokeColor = android.content.res.ColorStateList.valueOf(outlineColor)
             }
         }
     }

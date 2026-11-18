@@ -16,6 +16,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bayu.jelajahrasa.JelajahRasaApp
 import com.bayu.jelajahrasa.MainActivity
 import com.bayu.jelajahrasa.R
+import com.bayu.jelajahrasa.ThemePreferences
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.activityViewModels
+import com.bayu.jelajahrasa.ui.movie.SharedRecommendationViewModel
 import com.bayu.jelajahrasa.databinding.FragmentExploreBinding
 import com.bayu.jelajahrasa.model.CollectionType
 import com.bayu.jelajahrasa.model.Mood
@@ -45,6 +49,8 @@ class ExploreFragment : Fragment(R.layout.fragment_explore) {
         val app = requireActivity().application as JelajahRasaApp
         CollectionViewModelFactory(app.movieRepository, app.authRepository)
     }
+
+    private val sharedViewModel: SharedRecommendationViewModel by activityViewModels()
 
     private lateinit var movieAdapter: ExploreMovieAdapter
 
@@ -161,9 +167,16 @@ class ExploreFragment : Fragment(R.layout.fragment_explore) {
         setupSearch()
         setupFilters()
         setupMoodActionButtons()
+        setupRecommendationModeToggle()
         observeMovies()
 
         movieViewModel.loadGenres()
+
+        val modeArg = arguments?.getString("recommendationMode")
+        if (modeArg != null) {
+            sharedViewModel.setMode(modeArg)
+        }
+        movieViewModel.setRecommendationMode(sharedViewModel.recommendationMode.value)
 
         val moodName = arguments?.getString("mood")
         val mood = moodName?.let {
@@ -173,17 +186,14 @@ class ExploreFragment : Fragment(R.layout.fragment_explore) {
         if (mood != null) {
             selectedMood = mood
             updateMoodFilterVisibility(mood)
-            binding.moodActionButtons.visibility = View.VISIBLE
             movieViewModel.recommendByMood(mood, isNewSession = true)
         } else if (movieViewModel.uiState.value.selectedMood != null) {
             val currentMood = movieViewModel.uiState.value.selectedMood!!
             selectedMood = currentMood
             updateMoodFilterVisibility(currentMood)
-            binding.moodActionButtons.visibility = View.VISIBLE
         } else {
             selectedMood = null
             updateMoodFilterVisibility(null)
-            binding.moodActionButtons.visibility = View.GONE
             val currentState = movieViewModel.uiState.value
             if (currentState.movies.isEmpty() && currentState.searchQuery.isBlank()) {
                 movieViewModel.clearFilters()
@@ -191,6 +201,59 @@ class ExploreFragment : Fragment(R.layout.fragment_explore) {
         }
 
         arguments?.remove("mood")
+        arguments?.remove("recommendationMode")
+    }
+
+    private fun setupRecommendationModeToggle() {
+        val currentMode = sharedViewModel.recommendationMode.value
+        updateToggleStyles(currentMode)
+
+        binding.btnFast.setOnClickListener {
+            sharedViewModel.setMode(ThemePreferences.MODE_FAST)
+            movieViewModel.setRecommendationMode(ThemePreferences.MODE_FAST)
+            updateToggleStyles(ThemePreferences.MODE_FAST)
+        }
+
+        binding.btnAccurate.setOnClickListener {
+            sharedViewModel.setMode(ThemePreferences.MODE_ACCURATE)
+            movieViewModel.setRecommendationMode(ThemePreferences.MODE_ACCURATE)
+            updateToggleStyles(ThemePreferences.MODE_ACCURATE)
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                sharedViewModel.recommendationMode.collect { mode ->
+                    movieViewModel.setRecommendationMode(mode)
+                    updateToggleStyles(mode)
+                }
+            }
+        }
+    }
+
+    private fun updateToggleStyles(mode: String?) {
+        val primaryColor = ContextCompat.getColor(requireContext(), R.color.theme_primary)
+        val surfaceColor = ContextCompat.getColor(requireContext(), R.color.theme_surface)
+        val textSecondaryColor = ContextCompat.getColor(requireContext(), R.color.theme_text_secondary)
+        val onPrimaryColor = ContextCompat.getColor(requireContext(), R.color.theme_on_primary)
+        val outlineColor = ContextCompat.getColor(requireContext(), R.color.theme_outline)
+
+        if (mode == ThemePreferences.MODE_FAST) {
+            binding.btnFast.backgroundTintList = android.content.res.ColorStateList.valueOf(primaryColor)
+            binding.btnFast.setTextColor(onPrimaryColor)
+            binding.btnFast.strokeColor = android.content.res.ColorStateList.valueOf(primaryColor)
+
+            binding.btnAccurate.backgroundTintList = android.content.res.ColorStateList.valueOf(surfaceColor)
+            binding.btnAccurate.setTextColor(textSecondaryColor)
+            binding.btnAccurate.strokeColor = android.content.res.ColorStateList.valueOf(outlineColor)
+        } else {
+            binding.btnAccurate.backgroundTintList = android.content.res.ColorStateList.valueOf(primaryColor)
+            binding.btnAccurate.setTextColor(onPrimaryColor)
+            binding.btnAccurate.strokeColor = android.content.res.ColorStateList.valueOf(primaryColor)
+
+            binding.btnFast.backgroundTintList = android.content.res.ColorStateList.valueOf(surfaceColor)
+            binding.btnFast.setTextColor(textSecondaryColor)
+            binding.btnFast.strokeColor = android.content.res.ColorStateList.valueOf(outlineColor)
+        }
     }
 
     private fun setupMoodActionButtons() {
@@ -207,27 +270,47 @@ class ExploreFragment : Fragment(R.layout.fragment_explore) {
     }
 
     private fun showChangeMoodDialog() {
-        val moodEntries = arrayOf(
-            "☺ Bahagia",
-            "☹ Sedih",
-            "⚡ Bersemangat",
-            "⚡ Tegang",
-            "♡ Romantis",
-            "🔍 Penasaran"
-        )
-        val moods = arrayOf(Mood.HAPPY, Mood.SAD, Mood.ENERGETIC, Mood.TENSE, Mood.ROMANTIC, Mood.CURIOUS)
+        val dialogView = layoutInflater.inflate(R.layout.dialog_change_mood, null)
+        val container = dialogView.findViewById<android.widget.LinearLayout>(R.id.mood_container)
 
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle(R.string.explore_mood_dialog_title)
-            .setItems(moodEntries) { _, which ->
-                val chosenMood = moods[which]
-                selectedMood = chosenMood
-                updateMoodFilterVisibility(chosenMood)
-                binding.moodActionButtons.visibility = View.VISIBLE
-                movieViewModel.recommendByMood(chosenMood, isNewSession = true)
+        val moods = listOf(
+            Triple(Mood.HAPPY, "Bahagia", R.drawable.ic_mood_happy),
+            Triple(Mood.SAD, "Sedih", R.drawable.ic_mood_sad),
+            Triple(Mood.ENERGETIC, "Bersemangat", R.drawable.ic_mood_energetic),
+            Triple(Mood.TENSE, "Tegang", R.drawable.ic_mood_tense),
+            Triple(Mood.ROMANTIC, "Romantis", R.drawable.ic_mood_romantic),
+            Triple(Mood.CURIOUS, "Penasaran", R.drawable.ic_mood_curious)
+        )
+
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        for ((mood, title, iconRes) in moods) {
+            val rowView = layoutInflater.inflate(R.layout.item_dialog_mood, container, false)
+            val iconView = rowView.findViewById<android.widget.ImageView>(R.id.mood_icon)
+            val textView = rowView.findViewById<android.widget.TextView>(R.id.mood_text)
+
+            iconView.setImageResource(iconRes)
+            textView.text = title
+
+            val color = ContextCompat.getColor(requireContext(), mood.colorResId)
+            iconView.setColorFilter(color)
+            textView.setTextColor(color)
+
+            rowView.setOnClickListener {
+                dialog.dismiss()
+                selectedMood = mood
+                updateMoodFilterVisibility(mood)
+                movieViewModel.recommendByMood(mood, isNewSession = true)
                 binding.exploreMovies.scrollToPosition(0)
             }
-            .show()
+
+            container.addView(rowView)
+        }
+
+        dialog.window?.setBackgroundDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.bg_card))
+        dialog.show()
     }
 
     fun isMultiSelectionActive(): Boolean {
@@ -278,6 +361,12 @@ class ExploreFragment : Fragment(R.layout.fragment_explore) {
             (requireActivity() as? MainActivity)?.setBottomNavVisibility(true)
         }
 
+        binding.scrollToTopButton.setOnClickListener {
+            binding.exploreMovies.smoothScrollToPosition(0)
+            binding.exploreAppBar.setExpanded(true, true)
+            binding.scrollToTopButton.visibility = View.GONE
+        }
+
         binding.exploreMovies.apply {
             layoutManager = GridLayoutManager(requireContext(), 2)
             adapter = movieAdapter
@@ -289,6 +378,14 @@ class ExploreFragment : Fragment(R.layout.fragment_explore) {
                     dy: Int
                 ) {
                     super.onScrolled(recyclerView, dx, dy)
+
+                    val canScrollUp = recyclerView.canScrollVertically(-1)
+                    if (canScrollUp) {
+                        binding.scrollToTopButton.visibility = View.VISIBLE
+                    } else {
+                        binding.scrollToTopButton.visibility = View.GONE
+                        binding.exploreAppBar.setExpanded(true, true)
+                    }
 
                     if (isMultiSelectionActive()) {
                         (requireActivity() as? MainActivity)?.setBottomNavVisibility(false)
@@ -409,11 +506,13 @@ class ExploreFragment : Fragment(R.layout.fragment_explore) {
     }
 
     private fun updateMoodFilterVisibility(mood: Mood?) {
-        binding.genreFilterLayout.visibility =
-            if (mood == null) View.VISIBLE else View.GONE
-
-        binding.selectedMoodLabel.visibility =
-            if (mood == null) View.GONE else View.VISIBLE
+        val hasMood = mood != null
+        binding.manualFilterSection.visibility = if (hasMood) View.GONE else View.VISIBLE
+        binding.genreFilterLayout.visibility = if (mood == null) View.VISIBLE else View.GONE
+        binding.selectedMoodLabel.visibility = if (hasMood) View.VISIBLE else View.GONE
+        binding.recommendationModeLayout.visibility = if (hasMood) View.VISIBLE else View.GONE
+        binding.moreRecommendationsButton.visibility = if (hasMood) View.VISIBLE else View.GONE
+        binding.changeMoodButton.visibility = if (hasMood) View.VISIBLE else View.GONE
 
         if (mood != null) {
             binding.selectedMoodLabel.text = getString(

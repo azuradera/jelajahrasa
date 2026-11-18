@@ -2,6 +2,7 @@ package com.bayu.jelajahrasa.ui.movie
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bayu.jelajahrasa.ThemePreferences
 import com.bayu.jelajahrasa.data.local.entity.MovieEntity
 import com.bayu.jelajahrasa.data.remote.dto.GenreDto
 import com.bayu.jelajahrasa.data.repository.MovieRepository
@@ -17,6 +18,7 @@ data class MovieUiState(
     val movies: List<MovieEntity> = emptyList(),
     val genres: List<GenreDto> = emptyList(),
     val selectedMood: Mood? = null,
+    val recommendationMode: String = ThemePreferences.MODE_ACCURATE,
     val activeFilter: MovieFilter = MovieFilter(),
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
@@ -41,6 +43,16 @@ class MovieViewModel(
     private val shownMovieIds = mutableSetOf<Int>()
     private var currentMoodPage = 1
 
+    fun setRecommendationMode(mode: String) {
+        if (_uiState.value.recommendationMode != mode) {
+            _uiState.value = _uiState.value.copy(recommendationMode = mode)
+            val mood = _uiState.value.selectedMood
+            if (mood != null) {
+                recommendByMood(mood, isNewSession = true)
+            }
+        }
+    }
+
     fun recommendByMood(mood: Mood, isNewSession: Boolean = true) {
         requestJob?.cancel()
 
@@ -49,6 +61,90 @@ class MovieViewModel(
             currentMoodPage = (1..3).random()
         }
 
+        if (_uiState.value.recommendationMode == ThemePreferences.MODE_FAST) {
+            recommendFastByMood(mood)
+        } else {
+            recommendAccurateByMood(mood)
+        }
+    }
+
+    private fun recommendFastByMood(mood: Mood) {
+        val filter = MovieFilter(
+            genreIds = mood.getGenreIds(),
+            sortBy = "popularity.desc",
+            minimumRating = 5.0
+        )
+
+        _uiState.value = _uiState.value.copy(
+            selectedMood = mood,
+            searchQuery = "",
+            activeFilter = filter
+        )
+
+        requestJob = viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                errorMessage = null
+            )
+
+            try {
+                val page = currentMoodPage
+                val result = repository.discoverMovies(
+                    genreIds = filter.genreIds,
+                    sortBy = filter.sortBy,
+                    year = filter.year,
+                    minimumRating = filter.minimumRating,
+                    page = page
+                )
+
+                val userId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+                val watchedMovieIds = if (userId != null) {
+                    repository.getWatchedMovieIds(userId)
+                } else {
+                    emptyList()
+                }
+
+                val validCandidates = result.movies.filter { movie ->
+                    !watchedMovieIds.contains(movie.movieId) &&
+                    !shownMovieIds.contains(movie.movieId)
+                }.shuffled()
+
+                var selectedMovies = validCandidates.take(10)
+
+                if (selectedMovies.size < 10) {
+                    val fallbackCandidates = result.movies.filter { movie ->
+                        !watchedMovieIds.contains(movie.movieId)
+                    }.shuffled()
+                    selectedMovies = fallbackCandidates.take(10)
+                }
+
+                currentMoodPage += 1
+                if (currentMoodPage > 5) currentMoodPage = 1
+
+                shownMovieIds.addAll(selectedMovies.map { it.movieId })
+
+                _uiState.value = _uiState.value.copy(
+                    movies = selectedMovies,
+                    isLoading = false,
+                    isLoadingMore = false,
+                    currentPage = 1,
+                    totalPages = 1,
+                    totalResults = selectedMovies.size
+                )
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    isLoadingMore = false,
+                    errorMessage = exception.localizedMessage
+                        ?: "Gagal mengambil rekomendasi suasana hati."
+                )
+            }
+        }
+    }
+
+    private fun recommendAccurateByMood(mood: Mood) {
         val sortOptionsList = listOf("vote_average.desc", "popularity.desc", "vote_count.desc")
         val randomSort = sortOptionsList.random()
 
@@ -210,56 +306,30 @@ class MovieViewModel(
                     isLoading = false,
                     isLoadingMore = false,
                     errorMessage = exception.localizedMessage
-                        ?: "Gagal mengambil daftar film."
+                        ?: "Gagal memuat film."
                 )
             }
         }
     }
 
-    fun searchMovies(query: String, page: Int = 1) {
-        val trimmedQuery = query.trim()
-
-        if (trimmedQuery.isBlank()) {
-            requestJob?.cancel()
-
-            _uiState.value = _uiState.value.copy(
-                movies = emptyList(),
-                searchQuery = "",
-                selectedMood = null,
-                isLoading = false,
-                isLoadingMore = false,
-                currentPage = 1,
-                totalPages = 1,
-                totalResults = 0,
-                errorMessage = null
-            )
-            return
-        }
-
+    fun searchMovies(query: String, page: Int = 1, append: Boolean = false) {
         requestJob?.cancel()
 
         _uiState.value = _uiState.value.copy(
-            searchQuery = trimmedQuery,
-            selectedMood = null
+            selectedMood = null,
+            searchQuery = query,
+            isLoading = !append,
+            isLoadingMore = append,
+            errorMessage = null
         )
 
         requestJob = viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                isLoading = page == 1,
-                isLoadingMore = page > 1,
-                errorMessage = null
-            )
-
             try {
-                val result = repository.searchMovies(
-                    query = trimmedQuery,
-                    page = page
-                )
-
+                val result = repository.searchMovies(query, page)
                 val currentMovies = _uiState.value.movies
 
                 _uiState.value = _uiState.value.copy(
-                    movies = if (page > 1) {
+                    movies = if (append) {
                         (currentMovies + result.movies).distinctBy { it.movieId }
                     } else {
                         result.movies
@@ -277,75 +347,49 @@ class MovieViewModel(
                     isLoading = false,
                     isLoadingMore = false,
                     errorMessage = exception.localizedMessage
-                        ?: "Pencarian film gagal."
+                        ?: "Gagal mencari film."
                 )
             }
         }
     }
 
     fun loadNextPage() {
-        val state = _uiState.value
-
-        if (
-            state.isLoading ||
-            state.isLoadingMore ||
-            state.currentPage >= state.totalPages
-        ) {
+        val currentState = _uiState.value
+        if (currentState.isLoading || currentState.isLoadingMore || currentState.currentPage >= currentState.totalPages) {
             return
         }
 
-        val nextPage = state.currentPage + 1
-
-        if (state.searchQuery.isNotBlank()) {
-            searchMovies(state.searchQuery, nextPage)
+        val nextPage = currentState.currentPage + 1
+        if (currentState.searchQuery.isNotBlank()) {
+            searchMovies(currentState.searchQuery, nextPage, append = true)
+        } else if (currentState.selectedMood != null) {
+            // Mood recommendations pagination can load more recommendations
+            loadMoreMoodRecommendations()
         } else {
-            loadMovies(
-                filter = state.activeFilter,
-                page = nextPage,
-                append = true
-            )
+            loadMovies(currentState.activeFilter, nextPage, append = true)
         }
     }
 
     fun loadGenres() {
-        if (
-            _uiState.value.genres.isNotEmpty() ||
-            _uiState.value.isLoadingGenres
-        ) {
-            return
-        }
+        if (_uiState.value.genres.isNotEmpty() || _uiState.value.isLoadingGenres) return
 
         genreJob?.cancel()
-
         genreJob = viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                isLoadingGenres = true,
-                genreErrorMessage = null
-            )
-
+            _uiState.value = _uiState.value.copy(isLoadingGenres = true, genreErrorMessage = null)
             try {
-                val result = repository.getMovieGenres()
-
+                val response = repository.getMovieGenres()
                 _uiState.value = _uiState.value.copy(
-                    genres = result.genres,
-                    isLoadingGenres = false,
-                    genreErrorMessage = null
+                    genres = response.genres,
+                    isLoadingGenres = false
                 )
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoadingGenres = false,
-                    genreErrorMessage = exception.localizedMessage
-                        ?: "Gagal mengambil daftar genre."
+                    genreErrorMessage = exception.localizedMessage ?: "Gagal memuat genre."
                 )
             }
         }
-    }
-
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(
-            errorMessage = null
-        )
     }
 }

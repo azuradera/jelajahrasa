@@ -6,6 +6,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -192,6 +193,12 @@ class CollectionFragment : Fragment(R.layout.fragment_collection) {
             (requireActivity() as? MainActivity)?.setBottomNavVisibility(true)
         }
 
+        binding.scrollToTopButton.setOnClickListener {
+            binding.collectionMovies.smoothScrollToPosition(0)
+            binding.collectionAppBar.setExpanded(true, true)
+            binding.scrollToTopButton.visibility = View.GONE
+        }
+
         binding.collectionMovies.apply {
             layoutManager = GridLayoutManager(requireContext(), 2)
             adapter = movieAdapter
@@ -199,6 +206,15 @@ class CollectionFragment : Fragment(R.layout.fragment_collection) {
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
+
+                    val canScrollUp = recyclerView.canScrollVertically(-1)
+                    if (canScrollUp) {
+                        binding.scrollToTopButton.visibility = View.VISIBLE
+                    } else {
+                        binding.scrollToTopButton.visibility = View.GONE
+                        binding.collectionAppBar.setExpanded(true, true)
+                    }
+
                     if (isMultiSelectionActive()) {
                         (requireActivity() as? MainActivity)?.setBottomNavVisibility(false)
                         return
@@ -214,8 +230,12 @@ class CollectionFragment : Fragment(R.layout.fragment_collection) {
     }
 
     private fun setupCollectionTabs() {
+        updateTabStyles(binding.collectionTabs.checkedButtonId)
+
         binding.collectionTabs.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
+
+            updateTabStyles(checkedId)
 
             val type = when (checkedId) {
                 R.id.tab_watchlist -> CollectionType.WATCHLIST
@@ -226,6 +246,27 @@ class CollectionFragment : Fragment(R.layout.fragment_collection) {
 
             collectionViewModel.loadCollections(type)
             binding.collectionMovies.scrollToPosition(0)
+        }
+    }
+
+    private fun updateTabStyles(checkedId: Int) {
+        val primaryColor = ContextCompat.getColor(requireContext(), R.color.theme_primary)
+        val surfaceColor = ContextCompat.getColor(requireContext(), R.color.theme_surface)
+        val textSecondaryColor = ContextCompat.getColor(requireContext(), R.color.theme_text_secondary)
+        val onPrimaryColor = ContextCompat.getColor(requireContext(), R.color.theme_on_primary)
+        val outlineColor = ContextCompat.getColor(requireContext(), R.color.theme_outline)
+
+        val buttons = listOf(binding.tabWatchlist, binding.tabWatched, binding.tabFavorite)
+        for (btn in buttons) {
+            if (btn.id == checkedId) {
+                btn.backgroundTintList = android.content.res.ColorStateList.valueOf(primaryColor)
+                btn.setTextColor(onPrimaryColor)
+                btn.strokeColor = android.content.res.ColorStateList.valueOf(primaryColor)
+            } else {
+                btn.backgroundTintList = android.content.res.ColorStateList.valueOf(surfaceColor)
+                btn.setTextColor(textSecondaryColor)
+                btn.strokeColor = android.content.res.ColorStateList.valueOf(outlineColor)
+            }
         }
     }
 
