@@ -96,7 +96,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             binding.btnFast.setTextColor(textSecondaryColor)
             binding.btnFast.strokeColor = android.content.res.ColorStateList.valueOf(outlineColor)
         } else {
-            // Neutral (Belum dipilih)
             binding.btnFast.backgroundTintList = android.content.res.ColorStateList.valueOf(surfaceColor)
             binding.btnFast.setTextColor(textSecondaryColor)
             binding.btnFast.strokeColor = android.content.res.ColorStateList.valueOf(outlineColor)

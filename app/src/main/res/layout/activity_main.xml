@@ -27,7 +27,7 @@
         android:layout_marginBottom="16dp"
         app:cardBackgroundColor="@color/theme_card"
         app:cardCornerRadius="28dp"
-        app:cardElevation="6dp"
+        app:cardElevation="8dp"
         app:strokeColor="@color/theme_outline"
         app:strokeWidth="1dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -41,7 +41,6 @@
             android:weightSum="4"
             android:gravity="center">
 
-            <!-- Nav Item 1: Home -->
             <LinearLayout
                 android:id="@+id/nav_home"
                 android:layout_width="0dp"
@@ -73,7 +72,6 @@
 
             </LinearLayout>
 
-            <!-- Nav Item 2: Explore -->
             <LinearLayout
                 android:id="@+id/nav_explore"
                 android:layout_width="0dp"
@@ -105,7 +103,6 @@
 
             </LinearLayout>
 
-            <!-- Nav Item 3: Collection -->
             <LinearLayout
                 android:id="@+id/nav_collection"
                 android:layout_width="0dp"
@@ -137,7 +134,6 @@
 
             </LinearLayout>
 
-            <!-- Nav Item 4: Profile -->
             <LinearLayout
                 android:id="@+id/nav_profile"
                 android:layout_width="0dp"

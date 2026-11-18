@@ -363,7 +363,6 @@ class MovieViewModel(
         if (currentState.searchQuery.isNotBlank()) {
             searchMovies(currentState.searchQuery, nextPage, append = true)
         } else if (currentState.selectedMood != null) {
-            // Mood recommendations pagination can load more recommendations
             loadMoreMoodRecommendations()
         } else {
             loadMovies(currentState.activeFilter, nextPage, append = true)

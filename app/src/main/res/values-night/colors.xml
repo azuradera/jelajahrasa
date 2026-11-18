@@ -1,30 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="theme_background">#111915</color>
-    <color name="theme_surface">#1C2922</color>
-    <color name="theme_card">#26362E</color>
-    <color name="theme_primary">#7EAA86</color>
-    <color name="theme_on_primary">#111915</color>
-    <color name="theme_secondary">#B8CDB5</color>
-    <color name="theme_on_secondary">#111915</color>
-    <color name="theme_tertiary">#B8CDB5</color>
-    <color name="theme_on_tertiary">#111915</color>
-    <color name="theme_text">#F0F3EC</color>
-    <color name="theme_text_secondary">#B8CDB5</color>
-    <color name="theme_outline">#4A6154</color>
-
-    <!-- Aliases used in styles and drawables -->
-    <color name="color_on_primary">#111915</color>
-    <color name="color_card">#26362E</color>
-    <color name="color_text_secondary">#B8CDB5</color>
-    <color name="color_primary">#7EAA86</color>
-    <color name="color_dark_emerald">#365C45</color>
-
+    <color name="theme_background">#201F1C</color>
+    <color name="theme_surface">#302E29</color>
+    <color name="theme_card">#3D3A34</color>
+    <color name="theme_primary">#C5A875</color>
+    <color name="theme_on_primary">#201F1C</color>
+    <color name="theme_secondary">#E0CEAA</color>
+    <color name="theme_on_secondary">#201F1C</color>
+    <color name="theme_tertiary">#E0CEAA</color>
+    <color name="theme_on_tertiary">#201F1C</color>
+    <color name="theme_text">#F3F0E9</color>
+    <color name="theme_text_secondary">#C4BEB2</color>
+    <color name="theme_outline">#57534A</color>
+    <color name="color_on_primary">#201F1C</color>
+    <color name="color_card">#3D3A34</color>
+    <color name="color_text_secondary">#C4BEB2</color>
+    <color name="color_primary">#C5A875</color>
+    <color name="color_dark_emerald">#8C744B</color>
     <color name="soft_red">#D9665B</color>
-    <color name="mood_happy">#F2B84B</color>
+    <color name="mood_happy">#E0CEAA</color>
     <color name="mood_sad">#A7A39A</color>
-    <color name="mood_energetic">#F28C45</color>
+    <color name="mood_energetic">#D9825B</color>
     <color name="mood_tense">#D9665B</color>
-    <color name="mood_romantic">#E879A5</color>
-    <color name="mood_curious">#A6A65C</color>
+    <color name="mood_romantic">#D9799E</color>
+    <color name="mood_curious">#C5B475</color>
 </resources>
